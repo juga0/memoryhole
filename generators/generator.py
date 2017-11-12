@@ -6,12 +6,14 @@ import os
 import re
 import subprocess
 
+GPG = 'gpg'
+
 data = {
     'txt': '''This is a test
 message on multiple lines
 
 with a silly bit more.
--- 
+--
 and a .sig here.
 ''',
     'html': '''<html>
@@ -81,8 +83,8 @@ def render_mime_structure(z, prefix='└', stream=sys.stdout):
         subject = ''
     if (z.is_multipart()):
         print(prefix + '┬╴' + z.get_content_type() + cset +
-                disposition + fname, z.as_string().__len__().__str__()
-                + ' bytes' + subject, file=stream)
+              disposition + fname, z.as_string().__len__().__str__()
+              + ' bytes' + subject, file=stream)
         if prefix.endswith('└'):
             prefix = prefix.rpartition('└')[0] + ' '
         if prefix.endswith('├'):
@@ -146,7 +148,7 @@ class Generator(email.message.Message):
     def sign(self,body,sender=None):
         if not sender:
             sender = self.get('From')
-        g = subprocess.Popen(['gpg2', '--batch',
+        g = subprocess.Popen([GPG, '--batch',
                               '--homedir=corpus/OpenPGP/GNUPGHOME',
                               '--pinentry-mode=loopback',
                               '--passphrase', self.get_password_from(),
@@ -180,7 +182,7 @@ class Generator(email.message.Message):
 
 
     def encrypt(self,body, sign=False):
-        args = ['gpg2', '--batch',
+        args = [GPG, '--batch',
                 '--homedir=corpus/OpenPGP/GNUPGHOME',
                 '--no-emit-version',
                 '--armor',
@@ -241,4 +243,3 @@ class Generator(email.message.Message):
             if self.extended_description:
                 print(self.extended_description, file=descstream)
             render_mime_structure(self, stream=descstream)
-
